@@ -4,23 +4,29 @@ var swagger = require('swagger-express-middleware');
 var canned = require('canned/lib/canned');
 var Promise = require('bluebird');
 var xmlparser = require('express-xml-bodyparser');
+var $RefParser = require('json-schema-ref-parser');
 
 var SwaggerParser   = require('swagger-parser'),
     Middleware      = swagger.Middleware,
     MemoryDataStore = swagger.MemoryDataStore,
     Resource        = swagger.Resource;
 
-function loadFunctionalSwagger(wd, app, definition, path) {
+function loadFunctionalSwagger(wd, app, definition, basePath) {
   return new Promise(function(resolve, reject){
     var parser = new SwaggerParser();
     parser.dereference(path.resolve(wd, definition), function(err, definition) {
       if(err) return reject(err);
 
-      var basePath = path || definition.basePath || '/';
+      basePath = basePath || definition.basePath || '/';
       delete definition.basePath;
       var middleware = new Middleware(app);
 
+      if(basePath.charAt(0) != '/') {
+        basePath = '/' + basePath;
+      }
+
       middleware.init(definition, function(err) {
+        if(err) return reject(err);
         app.use(
           basePath,
           [
@@ -37,18 +43,22 @@ function loadFunctionalSwagger(wd, app, definition, path) {
     });
   });
 }
-function loadCannedSwagger(wd, app, definition, path, cannedPath) {
+function loadCannedSwagger(wd, app, definition, basePath, cannedPath) {
   return new Promise(function(resolve, reject){
     var parser = new SwaggerParser();
     parser.dereference(path.resolve(wd, definition), function(err, definition) {
       if(err) return reject(err);
 
-      var basePath = path || definition.basePath || '/';
+      basePath = basePath || definition.basePath || '/';
       delete definition.basePath;
       var middleware = new Middleware(app);
 
+      if(basePath.charAt(0) != '/') {
+        basePath = '/' + basePath;
+      }
+
       middleware.init(definition, function(err) {
-        var c = new canned(cannedPath, {
+        var c = new canned(path.resolve(wd, cannedPath), {
           logger: process.stdout
         });
         app.use(
@@ -92,10 +102,9 @@ function loadSOAP(wd, app, definition, path, cannedPath) {
   });
 }
 
-
 function Mocker(wd, config) {
   if (!(this instanceof Mocker)) {
-    return new Mocker(config);
+    return new Mocker(wd, config);
   }
   self = this;
   this.wd = wd;
@@ -104,11 +113,12 @@ function Mocker(wd, config) {
 
   if(typeof this.config === 'string') {
     this.whenReady = new Promise(function(resolve, reject){
-      var parser = new SwaggerParser();
       console.log('Reading :', path.resolve(self.wd, self.config));
-      parser.dereference(path.resolve(self.wd, self.config), function(err, parsed) {
+      $RefParser.dereference(path.resolve(self.wd, self.config), function(err, parsed) {
         if(err) return reject(err);
         self.config = parsed;
+        console.log('Parsed:', parsed);
+        resolve(parsed);
       });
     });
   }
@@ -133,14 +143,16 @@ Mocker.prototype.loadDefinition = function (definition) {
 };
 
 Mocker.prototype.start = function (cb) {
+  var self = this;
   var promise = this.whenReady;
-  promise.then(function(){
-      return Promise.all(this.config.definitions.map(function(definition){
-        return this.loadDefinition(definition);
-      }.bind(this)));
+  promise
+    .then(function(){
+      return Promise.all(self.config.definitions.map(function(definition){
+        return self.loadDefinition(definition);
+      }));
     })
     .then(function (){
-      app.listen(8080, function() {
+      self.app.listen(8080, function() {
         console.log('The Mock is now running at http://localhost:8080');
       });
     })
@@ -148,6 +160,5 @@ Mocker.prototype.start = function (cb) {
       console.log(err);
     });
 };
-
 
 module.exports = Mocker;
