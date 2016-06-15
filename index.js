@@ -104,7 +104,6 @@ function loadSOAP(wd, app, definition, path, cannedPath) {
 
 function loadCanned(wd, app, basePath, cannedPath) {
   return new Promise(function(resolve, reject){
-    var parser = new SwaggerParser();
     basePath = basePath || '/';
 
     if(basePath.charAt(0) != '/') {
