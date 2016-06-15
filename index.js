@@ -102,6 +102,28 @@ function loadSOAP(wd, app, definition, path, cannedPath) {
   });
 }
 
+function loadCanned(wd, app, basePath, cannedPath) {
+  return new Promise(function(resolve, reject){
+    var parser = new SwaggerParser();
+    basePath = basePath || '/';
+
+    if(basePath.charAt(0) != '/') {
+      basePath = '/' + basePath;
+    }
+
+    var c = new canned(path.resolve(wd, cannedPath), {
+      logger: process.stdout
+    });
+    app.use(
+      basePath,
+      [
+        c.responseFilter.bind(c)
+      ]
+    );
+    resolve(middleware);
+  });
+}
+
 function Mocker(wd, config) {
   if (!(this instanceof Mocker)) {
     return new Mocker(wd, config);
@@ -138,7 +160,7 @@ Mocker.prototype.loadDefinition = function (definition) {
       return Promise.reject('invalid configuration: ' + JSON.stringify(definition));
     }
   } else {
-    return Promise.reject('invalid configuration: ' + JSON.stringify(definition));
+    return loadCanned(this.wd, this.app, definition.path, definition.cannedPath);
   }
 };
 
@@ -152,7 +174,7 @@ Mocker.prototype.start = function (cb) {
       }));
     })
     .then(function (){
-      self.app.listen(8080, function() {
+      self.app.listen(self.config.port || 8080, function() {
         console.log('The Mock is now running at http://localhost:8080');
       });
     })
