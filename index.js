@@ -120,7 +120,7 @@ function loadCanned(wd, app, basePath, cannedPath) {
         c.responseFilter.bind(c)
       ]
     );
-    resolve(middleware);
+    resolve(true);
   });
 }
 
