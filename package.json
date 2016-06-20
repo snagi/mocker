@@ -1,6 +1,6 @@
 {
-  "name": "mocker",
-  "version": "1.0.0",
+  "name": "sn-mocker",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,11 +10,11 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.3.5",
-    "canned": "github:snagi/canned#master",
+    "sn-canned": "^0.3.7",
     "express": "^4.13.4",
     "express-xml-bodyparser": "^0.3.0",
     "handlebars": "^4.0.5",
     "json-schema-ref-parser": "^1.4.1",
-    "swagger-express-middleware": "github:snagi/swagger-express-middleware#master"
+    "sn-swagger-express-middleware": "^1.0.0"
   }
 }
