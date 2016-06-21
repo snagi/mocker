@@ -1,7 +1,7 @@
 var path = require('path');
 var express = require('express');
-var swagger = require('swagger-express-middleware');
-var canned = require('canned/lib/canned');
+var swagger = require('sn-swagger-express-middleware');
+var canned = require('sn-canned/lib/canned');
 var Promise = require('bluebird');
 var xmlparser = require('express-xml-bodyparser');
 var $RefParser = require('json-schema-ref-parser');
@@ -173,7 +173,7 @@ Mocker.prototype.start = function (cb) {
       }));
     })
     .then(function (){
-      self.app.listen(self.config.port || 8080, function() {
+      self.app.listen(process.env.PORT || self.config.port || 8080, function() {
         console.log('The Mock is now running at http://localhost:8080');
       });
     })
