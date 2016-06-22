@@ -174,7 +174,7 @@ Mocker.prototype.start = function (cb) {
     })
     .then(function (){
       self.app.listen(process.env.PORT || self.config.port || 8080, function() {
-        console.log('The Mock is now running at http://localhost:' + process.env.PORT || self.config.port || 8080);
+        console.log('The Mock is now running at http://localhost:' + (process.env.PORT || self.config.port || 8080));
       });
     })
     .catch(function(err){
