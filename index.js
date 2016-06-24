@@ -59,7 +59,9 @@ function loadCannedSwagger(wd, app, definition, basePath, cannedPath) {
 
       middleware.init(definition, function(err) {
         var c = new canned(path.resolve(wd, cannedPath), {
-          logger: process.stdout
+          logger: process.stdout,
+          cors: true,
+          cors_headers: ["Content-Type", "Location"]
         });
         app.use(
           basePath,
@@ -82,7 +84,9 @@ var prefixMatch = new RegExp(/(?!xmlns)^.*:/);
 function loadSOAP(wd, app, definition, path, cannedPath) {
   return new Promise(function(resolve, reject){
     var c = new canned(cannedPath, {
-      logger: process.stdout
+      logger: process.stdout,
+      cors: true,
+      cors_headers: ["Content-Type", "Location"]
     });
     app.use(
       path,
@@ -111,7 +115,9 @@ function loadCanned(wd, app, basePath, cannedPath) {
     }
 
     var c = new canned(path.resolve(wd, cannedPath), {
-      logger: process.stdout
+      logger: process.stdout,
+      cors: true,
+      cors_headers: ["Content-Type", "Location"]
     });
     app.use(
       basePath,
