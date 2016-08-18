@@ -1,6 +1,6 @@
 {
   "name": "sn-mocker",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.3.5",
-    "sn-canned": "^0.3.9",
+    "sn-canned": "^0.3.11",
     "express": "^4.13.4",
     "express-xml-bodyparser": "^0.3.0",
     "handlebars": "^4.0.5",
