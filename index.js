@@ -3,6 +3,7 @@ var express = require('express');
 var swagger = require('sn-swagger-express-middleware');
 var canned = require('sn-canned/lib/canned');
 var Promise = require('bluebird');
+var bodyParser = require('body-parser');
 var xmlparser = require('express-xml-bodyparser');
 var $RefParser = require('json-schema-ref-parser');
 
@@ -36,6 +37,42 @@ function loadFunctionalSwagger(wd, app, definition, basePath) {
             middleware.parseRequest(),
             middleware.validateRequest(),
             middleware.mock()
+          ]
+        );
+        resolve(middleware);
+      });
+    });
+  });
+}
+function loadModeledSwagger(wd, app, definition, basePath, modeledPath) {
+  return new Promise(function(resolve, reject){
+    var parser = new SwaggerParser();
+    parser.dereference(path.resolve(wd, definition), function(err, definition) {
+      if(err) return reject(err);
+
+      basePath = basePath || definition.basePath || '/';
+      delete definition.basePath;
+      var middleware = new Middleware(app);
+
+      if(basePath.charAt(0) != '/') {
+        basePath = '/' + basePath;
+      }
+
+      middleware.init(definition, function(err) {
+        var c = new canned(path.resolve(wd, cannedPath), {
+          logger: process.stdout,
+          cors: true,
+          cors_headers: ["Content-Type", "Location"]
+        });
+        app.use(
+          basePath,
+          [
+            middleware.metadata(),
+            middleware.CORS(),
+            middleware.files(),
+            middleware.parseRequest(),
+            middleware.validateRequest(),
+            c.responseFilter.bind(c)
           ]
         );
         resolve(middleware);
@@ -128,6 +165,39 @@ function loadCanned(wd, app, basePath, cannedPath) {
     resolve(true);
   });
 }
+function loadModeled(wd, app, basePath, modeledPath) {
+  return new Promise(function(resolve, reject){
+    basePath = basePath || '/';
+
+    if(basePath.charAt(0) != '/') {
+      basePath = '/' + basePath;
+    }
+
+    var models = require(path.resolve(wd, modeledPath));
+
+    models.forEach(function(model) {
+      app[model.method || 'use'](
+        basePath + model.path,
+        [
+          bodyParser.json(),
+          bodyParser.text(),
+          bodyParser.urlencoded(),
+          function(req, res) {
+            model.handler(req.body, {}, function(err, result, options) {
+              options = options || {};
+              res.status(options.statusCode || 500);
+              if(options.headers) {
+                res.set(options.headers);
+              }
+              res.end(result);
+            });
+          }
+        ]
+      );
+    });
+    resolve(true);
+  });
+}
 
 function Mocker(wd, config) {
   if (!(this instanceof Mocker)) {
@@ -155,6 +225,8 @@ Mocker.prototype.loadDefinition = function (definition) {
   if(definition.swagger) {
     if (definition.cannedPath) {
       return loadCannedSwagger(this.wd, this.app, definition.swagger, definition.path, definition.cannedPath);
+    } else if (definition.modeledPath) {
+      return loadCannedSwagger(this.wd, this.app, definition.swagger, definition.path, definition.cannedPath);
     } else {
       return loadFunctionalSwagger(this.wd, this.app, definition.swagger, definition.path);
     }
@@ -165,7 +237,14 @@ Mocker.prototype.loadDefinition = function (definition) {
       return Promise.reject('invalid configuration: ' + JSON.stringify(definition));
     }
   } else {
-    return loadCanned(this.wd, this.app, definition.path, definition.cannedPath);
+    if (definition.cannedPath) {
+      return loadCanned(this.wd, this.app, definition.path, definition.cannedPath);
+    } else if (definition.modeledPath) {
+      return loadModeled(this.wd, this.app, definition.path, definition.modeledPath);
+    } else {
+      return Promise.reject('invalid configuration: ' + JSON.stringify(definition));
+    }
+
   }
 };
 
