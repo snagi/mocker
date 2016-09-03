@@ -6,6 +6,8 @@ var Promise = require('bluebird');
 var bodyParser = require('body-parser');
 var xmlparser = require('express-xml-bodyparser');
 var $RefParser = require('json-schema-ref-parser');
+var multer = require('multer');
+var upload = multer({ dest: 'uploads/' })
 
 var SwaggerParser   = require('swagger-parser'),
     Middleware      = swagger.Middleware,
@@ -182,6 +184,7 @@ function loadModeled(wd, app, basePath, modeledPath) {
           bodyParser.json(),
           bodyParser.text(),
           bodyParser.urlencoded(),
+          upload.any(),
           function(req, res) {
             model.handler(req.body, {headers: req.headers, query: req.query, params: req.params, cookies: req.cookies}, function(err, result, options) {
               options = options || {};
