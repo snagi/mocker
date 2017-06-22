@@ -192,7 +192,13 @@ function loadModeled(wd, app, basePath, modeledPath) {
               if(options.headers) {
                 res.set(options.headers);
               }
-              res.end(result);
+              var jsonpCallback = options.jsonpCallback || 'callback';
+              if(req.method === 'GET' && req.query[jsonpCallback]) {
+                  app.set('jsonp callback name', jsonpCallback);
+                  res.jsonp(result)
+              } else {
+                  res.send(result);
+              }
             });
           }
         ]
