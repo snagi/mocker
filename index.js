@@ -7,7 +7,9 @@ var bodyParser = require('body-parser');
 var xmlparser = require('express-xml-bodyparser');
 var $RefParser = require('json-schema-ref-parser');
 var multer = require('multer');
-var upload = multer({ dest: 'uploads/' })
+var cors = require('cors');
+var methodOverride = require('method-override');
+var upload = multer({ dest: 'uploads/' });
 
 var SwaggerParser   = require('swagger-parser'),
     Middleware      = swagger.Middleware,
@@ -176,11 +178,20 @@ function loadModeled(wd, app, basePath, modeledPath) {
     }
 
     var models = require(path.resolve(wd, modeledPath));
+    var corsOptions = {
+      "origin": "*",
+      "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+      "preflightContinue": false,
+      "optionsSuccessStatus": 200
+    };
 
     models.forEach(function(model) {
+      app.options(basePath + model.path, cors(corsOptions));
+
       app[model.method || 'use'](
         basePath + model.path,
         [
+          cors(corsOptions),
           bodyParser.json(),
           bodyParser.text(),
           bodyParser.urlencoded(),
@@ -216,6 +227,12 @@ function Mocker(wd, config) {
   this.wd = wd;
   this.config = config;
   this.app = express();
+
+  this.app.use(methodOverride(function (req, res) {
+    if (req.query && typeof req.query === 'object' && '_method' in req.query) {
+      return req.query._method
+    }
+  }));
 
   if(typeof this.config === 'string') {
     this.whenReady = new Promise(function(resolve, reject){
