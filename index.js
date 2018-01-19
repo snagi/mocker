@@ -125,8 +125,7 @@ function loadSOAP(wd, app, definition, path, cannedPath) {
   return new Promise(function(resolve, reject){
     var c = new canned(cannedPath, {
       logger: process.stdout,
-      cors: true,
-      cors_headers: ["Content-Type", "Location"]
+      cors: true
     });
     app.use(
       path,
@@ -156,8 +155,7 @@ function loadCanned(wd, app, basePath, cannedPath) {
 
     var c = new canned(path.resolve(wd, cannedPath), {
       logger: process.stdout,
-      cors: true,
-      cors_headers: ["Content-Type", "Location"]
+      cors: true
     });
     app.use(
       basePath,
