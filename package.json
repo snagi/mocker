@@ -1,6 +1,6 @@
 {
   "name": "sn-mocker",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,7 @@
   "dependencies": {
     "bluebird": "^3.3.5",
     "body-parser": "^1.15.2",
+    "cookie-parser": "^1.4.3",
     "cors": "^2.8.3",
     "express": "^4.13.4",
     "express-xml-bodyparser": "^0.3.0",

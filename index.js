@@ -4,6 +4,7 @@ var swagger = require('sn-swagger-express-middleware');
 var canned = require('sn-canned/lib/canned');
 var Promise = require('bluebird');
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser')
 var xmlparser = require('express-xml-bodyparser');
 var $RefParser = require('json-schema-ref-parser');
 var multer = require('multer');
@@ -196,6 +197,7 @@ function loadModeled(wd, app, basePath, modeledPath) {
             tagNameProcessors: [function(str) {return str.replace(prefixMatch, '');}]
           }),
           bodyParser.urlencoded(),
+          cookieParser(),
           upload.any(),
           function(req, res) {
             model.handler(req.body, {headers: req.headers, query: req.query, params: req.params, cookies: req.cookies, files: req.files}, function(err, result, options) {
