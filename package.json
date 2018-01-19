@@ -1,6 +1,6 @@
 {
   "name": "sn-mocker",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "json-schema-ref-parser": "^1.4.1",
     "method-override": "^2.3.9",
     "multer": "^1.2.0",
-    "sn-canned": "^0.3.11",
+    "sn-canned": "^0.3.14",
     "sn-swagger-express-middleware": "^1.0.0",
     "swagger-parser": "^3.4.1"
   }

@@ -101,8 +101,7 @@ function loadCannedSwagger(wd, app, definition, basePath, cannedPath) {
       middleware.init(definition, function(err) {
         var c = new canned(path.resolve(wd, cannedPath), {
           logger: process.stdout,
-          cors: true,
-          cors_headers: ["Content-Type", "Location"]
+          cors: true
         });
         app.use(
           basePath,
