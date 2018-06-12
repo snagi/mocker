@@ -276,7 +276,8 @@ Mocker.prototype.loadDefinition = function (definition) {
 
   }
 };
-
+const events = require('events');
+var emitter = new events.EventEmitter();
 Mocker.prototype.start = function (cb) {
   var self = this;
   var promise = this.whenReady;
@@ -289,6 +290,7 @@ Mocker.prototype.start = function (cb) {
     .then(function (){
       self.app.listen(process.env.PORT || self.config.port || 8080, function() {
         console.log('The Mock is now running at http://localhost:' + (process.env.PORT || self.config.port || 8080));
+        emitter.emit('appStarted');
       });
     })
     .catch(function(err){
@@ -297,3 +299,4 @@ Mocker.prototype.start = function (cb) {
 };
 
 module.exports = Mocker;
+module.exports.emitter = emitter;
