@@ -16,7 +16,8 @@ var SwaggerParser   = require('swagger-parser'),
     Middleware      = swagger.Middleware,
     MemoryDataStore = swagger.MemoryDataStore,
     Resource        = swagger.Resource;
-
+var {EventEmitter} = require('events');
+var util = require('util');
 function loadFunctionalSwagger(wd, app, definition, basePath) {
   return new Promise(function(resolve, reject){
     var parser = new SwaggerParser();
@@ -226,11 +227,12 @@ function Mocker(wd, config) {
   if (!(this instanceof Mocker)) {
     return new Mocker(wd, config);
   }
+  EventEmitter.call(this);
+  
   self = this;
   this.wd = wd;
   this.config = config;
   this.app = express();
-
   this.app.use(methodOverride(function (req, res) {
     if (req.query && typeof req.query === 'object' && '_method' in req.query) {
       return req.query._method
@@ -249,6 +251,8 @@ function Mocker(wd, config) {
     });
   }
 }
+
+util.inherits(Mocker, EventEmitter);
 
 Mocker.prototype.loadDefinition = function (definition) {
   if(definition.swagger) {
@@ -276,8 +280,8 @@ Mocker.prototype.loadDefinition = function (definition) {
 
   }
 };
-const events = require('events');
-var emitter = new events.EventEmitter();
+
+
 Mocker.prototype.start = function (cb) {
   var self = this;
   var promise = this.whenReady;
@@ -290,7 +294,7 @@ Mocker.prototype.start = function (cb) {
     .then(function (){
       self.app.listen(process.env.PORT || self.config.port || 8080, function() {
         console.log('The Mock is now running at http://localhost:' + (process.env.PORT || self.config.port || 8080));
-        emitter.emit('appStarted');
+        self.emit('appStarted');
       });
     })
     .catch(function(err){
@@ -299,4 +303,3 @@ Mocker.prototype.start = function (cb) {
 };
 
 module.exports = Mocker;
-module.exports.emitter = emitter;
