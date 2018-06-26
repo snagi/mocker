@@ -201,7 +201,7 @@ function loadModeled(wd, app, basePath, modeledPath) {
           cookieParser(),
           upload.any(),
           function(req, res) {
-            model.handler(req.body, {headers: req.headers, query: req.query, params: req.params, cookies: req.cookies, files: req.files}, function(err, result, options) {
+            model.handler(req.body, {headers: req.headers, query: req.query, params: req.params, cookies: req.cookies, files: req.files, req}, function(err, result, options) {
               options = options || {};
               res.status(options.statusCode || 500);
               if(options.headers) {
