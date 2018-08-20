@@ -178,7 +178,7 @@ function loadModeled(wd, app, basePath, modeledPath) {
 
     var models = require(path.resolve(wd, modeledPath));
     var corsOptions = {
-      "origin": "*",
+      "origin": true,
       "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
       "preflightContinue": false,
       "optionsSuccessStatus": 200
