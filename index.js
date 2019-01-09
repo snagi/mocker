@@ -218,6 +218,7 @@ function loadModeled(wd, app, basePath, modeledPath) {
               } else {
                 res.send(result);
               }
+              const now = new Date().getTime();
               console.log(
                 `Post sending response url=${req.originalUrl} method=${
                   req.method
