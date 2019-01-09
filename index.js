@@ -4,7 +4,7 @@ var swagger = require('sn-swagger-express-middleware');
 var canned = require('sn-canned/lib/canned');
 var Promise = require('bluebird');
 var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser')
+var cookieParser = require('cookie-parser');
 var xmlparser = require('express-xml-bodyparser');
 var $RefParser = require('json-schema-ref-parser');
 var multer = require('multer');
@@ -12,55 +12,52 @@ var cors = require('cors');
 var methodOverride = require('method-override');
 var upload = multer({ dest: 'uploads/' });
 
-var SwaggerParser   = require('swagger-parser'),
-    Middleware      = swagger.Middleware,
-    MemoryDataStore = swagger.MemoryDataStore,
-    Resource        = swagger.Resource;
-var {EventEmitter} = require('events');
+var SwaggerParser = require('swagger-parser'),
+  Middleware = swagger.Middleware,
+  MemoryDataStore = swagger.MemoryDataStore,
+  Resource = swagger.Resource;
+var { EventEmitter } = require('events');
 var util = require('util');
 function loadFunctionalSwagger(wd, app, definition, basePath) {
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve, reject) {
     var parser = new SwaggerParser();
     parser.dereference(path.resolve(wd, definition), function(err, definition) {
-      if(err) return reject(err);
+      if (err) return reject(err);
 
       basePath = basePath || definition.basePath || '/';
       delete definition.basePath;
       var middleware = new Middleware(app);
 
-      if(basePath.charAt(0) != '/') {
+      if (basePath.charAt(0) != '/') {
         basePath = '/' + basePath;
       }
 
       middleware.init(definition, function(err) {
-        if(err) return reject(err);
-        app.use(
-          basePath,
-          [
-            middleware.metadata(),
-            middleware.CORS(),
-            middleware.files(),
-            middleware.parseRequest(),
-            middleware.validateRequest(),
-            middleware.mock()
-          ]
-        );
+        if (err) return reject(err);
+        app.use(basePath, [
+          middleware.metadata(),
+          middleware.CORS(),
+          middleware.files(),
+          middleware.parseRequest(),
+          middleware.validateRequest(),
+          middleware.mock(),
+        ]);
         resolve(middleware);
       });
     });
   });
 }
 function loadModeledSwagger(wd, app, definition, basePath, modeledPath) {
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve, reject) {
     var parser = new SwaggerParser();
     parser.dereference(path.resolve(wd, definition), function(err, definition) {
-      if(err) return reject(err);
+      if (err) return reject(err);
 
       basePath = basePath || definition.basePath || '/';
       delete definition.basePath;
       var middleware = new Middleware(app);
 
-      if(basePath.charAt(0) != '/') {
+      if (basePath.charAt(0) != '/') {
         basePath = '/' + basePath;
       }
 
@@ -68,54 +65,48 @@ function loadModeledSwagger(wd, app, definition, basePath, modeledPath) {
         var c = new canned(path.resolve(wd, cannedPath), {
           logger: process.stdout,
           cors: true,
-          cors_headers: ["Content-Type", "Location"]
+          cors_headers: ['Content-Type', 'Location'],
         });
-        app.use(
-          basePath,
-          [
-            middleware.metadata(),
-            middleware.CORS(),
-            middleware.files(),
-            middleware.parseRequest(),
-            middleware.validateRequest(),
-            c.responseFilter.bind(c)
-          ]
-        );
+        app.use(basePath, [
+          middleware.metadata(),
+          middleware.CORS(),
+          middleware.files(),
+          middleware.parseRequest(),
+          middleware.validateRequest(),
+          c.responseFilter.bind(c),
+        ]);
         resolve(middleware);
       });
     });
   });
 }
 function loadCannedSwagger(wd, app, definition, basePath, cannedPath) {
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve, reject) {
     var parser = new SwaggerParser();
     parser.dereference(path.resolve(wd, definition), function(err, definition) {
-      if(err) return reject(err);
+      if (err) return reject(err);
 
       basePath = basePath || definition.basePath || '/';
       delete definition.basePath;
       var middleware = new Middleware(app);
 
-      if(basePath.charAt(0) != '/') {
+      if (basePath.charAt(0) != '/') {
         basePath = '/' + basePath;
       }
 
       middleware.init(definition, function(err) {
         var c = new canned(path.resolve(wd, cannedPath), {
           logger: process.stdout,
-          cors: true
+          cors: true,
         });
-        app.use(
-          basePath,
-          [
-            middleware.metadata(),
-            middleware.CORS(),
-            middleware.files(),
-            middleware.parseRequest(),
-            middleware.validateRequest(),
-            c.responseFilter.bind(c)
-          ]
-        );
+        app.use(basePath, [
+          middleware.metadata(),
+          middleware.CORS(),
+          middleware.files(),
+          middleware.parseRequest(),
+          middleware.validateRequest(),
+          c.responseFilter.bind(c),
+        ]);
         resolve(middleware);
       });
     });
@@ -124,100 +115,121 @@ function loadCannedSwagger(wd, app, definition, basePath, cannedPath) {
 
 var prefixMatch = new RegExp(/(?!xmlns)^.*:/);
 function loadSOAP(wd, app, definition, path, cannedPath) {
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve, reject) {
     var c = new canned(cannedPath, {
       logger: process.stdout,
-      cors: true
+      cors: true,
     });
-    app.use(
-      path,
-      [
-        xmlparser({
-          explicitArray: false,
-          tagNameProcessors: [function(str) {return str.replace(prefixMatch, '');}]
-        }),
-        // function (req, res, next) {
-        //   console.log(JSON.stringify(req.body, null, 2));
-        //   next();
-        // },
-        c.responseFilter.bind(c)
-      ]
-    );
+    app.use(path, [
+      xmlparser({
+        explicitArray: false,
+        tagNameProcessors: [
+          function(str) {
+            return str.replace(prefixMatch, '');
+          },
+        ],
+      }),
+      // function (req, res, next) {
+      //   console.log(JSON.stringify(req.body, null, 2));
+      //   next();
+      // },
+      c.responseFilter.bind(c),
+    ]);
     resolve(app);
   });
 }
 
 function loadCanned(wd, app, basePath, cannedPath) {
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve, reject) {
     basePath = basePath || '/';
 
-    if(basePath.charAt(0) != '/') {
+    if (basePath.charAt(0) != '/') {
       basePath = '/' + basePath;
     }
 
     var c = new canned(path.resolve(wd, cannedPath), {
       logger: process.stdout,
-      cors: true
+      cors: true,
     });
-    app.use(
-      basePath,
-      [
-        c.responseFilter.bind(c)
-      ]
-    );
+    app.use(basePath, [c.responseFilter.bind(c)]);
     resolve(true);
   });
 }
 function loadModeled(wd, app, basePath, modeledPath) {
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve, reject) {
     basePath = basePath || '/';
 
-    if(basePath.charAt(0) != '/') {
+    if (basePath.charAt(0) != '/') {
       basePath = '/' + basePath;
     }
 
     var models = require(path.resolve(wd, modeledPath));
     var corsOptions = {
-      "origin": true,
-      "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-      "preflightContinue": false,
-      "optionsSuccessStatus": 200
+      origin: true,
+      credentials: true,
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      preflightContinue: false,
+      optionsSuccessStatus: 200,
     };
 
     models.forEach(function(model) {
       app.options(basePath + model.path, cors(corsOptions));
 
-      app[model.method || 'use'](
-        basePath + model.path,
-        [
-          cors(corsOptions),
-          bodyParser.json(),
-          bodyParser.text(),
-          xmlparser({
-            explicitArray: false,
-            tagNameProcessors: [function(str) {return str.replace(prefixMatch, '');}]
-          }),
-          bodyParser.urlencoded(),
-          cookieParser(),
-          upload.any(),
-          function(req, res) {
-            model.handler(req.body, {headers: req.headers, query: req.query, params: req.params, cookies: req.cookies, files: req.files, req}, function(err, result, options) {
+      app[model.method || 'use'](basePath + model.path, [
+        (req, res, next) => {
+          req.requestStartTime = new Date().getTime();
+          next();
+        },
+        cors(corsOptions),
+        bodyParser.json(),
+        bodyParser.text(),
+        xmlparser({
+          explicitArray: false,
+          tagNameProcessors: [
+            function(str) {
+              return str.replace(prefixMatch, '');
+            },
+          ],
+        }),
+        bodyParser.urlencoded(),
+        cookieParser(),
+        upload.any(),
+        function(req, res) {
+          model.handler(
+            req.body,
+            {
+              headers: req.headers,
+              query: req.query,
+              params: req.params,
+              cookies: req.cookies,
+              files: req.files,
+              req,
+            },
+            function(err, result, options) {
               options = options || {};
               res.status(options.statusCode || 500);
-              if(options.headers) {
+              if (options.headers) {
                 res.set(options.headers);
               }
               var jsonpCallback = options.jsonpCallback || 'callback';
-              if(req.method === 'GET' && req.query[jsonpCallback]) {
-                  app.set('jsonp callback name', jsonpCallback);
-                  res.jsonp(result)
+              if (req.method === 'GET' && req.query[jsonpCallback]) {
+                app.set('jsonp callback name', jsonpCallback);
+                res.jsonp(result);
               } else {
-                  res.send(result);
+                res.send(result);
               }
-            });
-          }
-        ]
-      );
+              console.log(
+                `Post sending response url=${req.originalUrl} method=${
+                  req.method
+                } response_time=${(now - req.requestStartTime) /
+                  1000} headers ${Object.keys(req.headers)
+                  .map(name => name + '=' + req.headers[name])
+                  .join(' ')}`
+              );
+            }
+          );
+        },
+      ]);
     });
     resolve(true);
   });
@@ -228,22 +240,31 @@ function Mocker(wd, config) {
     return new Mocker(wd, config);
   }
   EventEmitter.call(this);
-  
+
   self = this;
   this.wd = wd;
   this.config = config;
   this.app = express();
-  this.app.use(methodOverride(function (req, res) {
-    if (req.query && typeof req.query === 'object' && '_method' in req.query) {
-      return req.query._method
-    }
-  }));
+  this.app.use(
+    methodOverride(function(req, res) {
+      if (
+        req.query &&
+        typeof req.query === 'object' &&
+        '_method' in req.query
+      ) {
+        return req.query._method;
+      }
+    })
+  );
 
-  if(typeof this.config === 'string') {
-    this.whenReady = new Promise(function(resolve, reject){
+  if (typeof this.config === 'string') {
+    this.whenReady = new Promise(function(resolve, reject) {
       console.log('Reading :', path.resolve(self.wd, self.config));
-      $RefParser.dereference(path.resolve(self.wd, self.config), function(err, parsed) {
-        if(err) return reject(err);
+      $RefParser.dereference(path.resolve(self.wd, self.config), function(
+        err,
+        parsed
+      ) {
+        if (err) return reject(err);
         self.config = parsed;
         console.log('Parsed:', parsed);
         resolve(parsed);
@@ -254,50 +275,90 @@ function Mocker(wd, config) {
 
 util.inherits(Mocker, EventEmitter);
 
-Mocker.prototype.loadDefinition = function (definition) {
-  if(definition.swagger) {
+Mocker.prototype.loadDefinition = function(definition) {
+  if (definition.swagger) {
     if (definition.cannedPath) {
-      return loadCannedSwagger(this.wd, this.app, definition.swagger, definition.path, definition.cannedPath);
+      return loadCannedSwagger(
+        this.wd,
+        this.app,
+        definition.swagger,
+        definition.path,
+        definition.cannedPath
+      );
     } else if (definition.modeledPath) {
-      return loadCannedSwagger(this.wd, this.app, definition.swagger, definition.path, definition.cannedPath);
+      return loadCannedSwagger(
+        this.wd,
+        this.app,
+        definition.swagger,
+        definition.path,
+        definition.cannedPath
+      );
     } else {
-      return loadFunctionalSwagger(this.wd, this.app, definition.swagger, definition.path);
+      return loadFunctionalSwagger(
+        this.wd,
+        this.app,
+        definition.swagger,
+        definition.path
+      );
     }
   } else if (definition.wsdl) {
     if (definition.cannedPath) {
-      return loadSOAP(this.wd, this.app, definition.wsdl, definition.path, definition.cannedPath);
+      return loadSOAP(
+        this.wd,
+        this.app,
+        definition.wsdl,
+        definition.path,
+        definition.cannedPath
+      );
     } else {
-      return Promise.reject('invalid configuration: ' + JSON.stringify(definition));
+      return Promise.reject(
+        'invalid configuration: ' + JSON.stringify(definition)
+      );
     }
   } else {
     if (definition.cannedPath) {
-      return loadCanned(this.wd, this.app, definition.path, definition.cannedPath);
+      return loadCanned(
+        this.wd,
+        this.app,
+        definition.path,
+        definition.cannedPath
+      );
     } else if (definition.modeledPath) {
-      return loadModeled(this.wd, this.app, definition.path, definition.modeledPath);
+      return loadModeled(
+        this.wd,
+        this.app,
+        definition.path,
+        definition.modeledPath
+      );
     } else {
-      return Promise.reject('invalid configuration: ' + JSON.stringify(definition));
+      return Promise.reject(
+        'invalid configuration: ' + JSON.stringify(definition)
+      );
     }
-
   }
 };
 
-
-Mocker.prototype.start = function (cb) {
+Mocker.prototype.start = function(cb) {
   var self = this;
   var promise = this.whenReady;
   promise
-    .then(function(){
-      return Promise.all(self.config.definitions.map(function(definition){
-        return self.loadDefinition(definition);
-      }));
+    .then(function() {
+      return Promise.all(
+        self.config.definitions.map(function(definition) {
+          return self.loadDefinition(definition);
+        })
+      );
     })
-    .then(function (){
+    .then(function() {
       self.app.listen(process.env.PORT || self.config.port || 8080, function() {
-        console.log('The Mock is now running at http://localhost:' + (process.env.PORT || self.config.port || 8080));
+        console.log(
+          'The Mock is now running at http://localhost:' +
+            (process.env.PORT || self.config.port || 8080)
+        );
         self.emit('appStarted');
       });
     })
-    .catch(function(err){
+    .catch(function(err) {
       console.log(err);
     });
 };
